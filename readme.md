@@ -1,5 +1,5 @@
 # Implementation of multiple objective rout optimization solving 
-
+$$\sum_{n=1}^{10} n^2$$
 # 1- Introduction 
 In real world whenever we encounter shipment planning in supply chain management, we have ploblems as how to schedule/allocate vehicles to target customers/vendors. This is an logistic distribution route optimization problem. In this program we will consider three major parts:
 * **First:** designing  the intelligent optimization model whereas be able to accept different cases. The model can be multiple objective, can have cost functions and fitness functions, with constraints or without constraints.
