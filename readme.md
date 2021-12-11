@@ -42,6 +42,13 @@ These sets or parameters will be defined during the algorithm steps
 Cost function here in this model is minimizing the sum of power consumption for all vehicles. the formula is:
 
 $$\sum_{n=1}^{10} n^2$$
+
+\begin{align*}
+a & = b \\
+X &\sim {\sf Norm}(10, 3) \\
+5 & \le 10
+\end{align*}
+
 ## 2-3- Hypothesis of model 
 
 # 3- Methodology
