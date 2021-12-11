@@ -10,8 +10,7 @@ In real world whenever we encounter shipment planning in supply chain management
 
 # 2- optimization model
 In this program we have a complex model that cannot be solved by exact algorithms and we need to apply evolutionary algorithms. There are many of them in application of reasearches during last decade. The algorithm that we consider is particle swarm optimization(PSO) that the main concept comes from the movement of birds and fishes for searching a common target. tests
-![Algorithm](C:\Users\aenga\Desktop\C++\Algorithm.png)
-
+![Algorithm](C:/Users/aenga/Desktop/C++/Algorithm.png)
 ## 2-1- Parameter setting 
 
 ## 2-2- Objective function
