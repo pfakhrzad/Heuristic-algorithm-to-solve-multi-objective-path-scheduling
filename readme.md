@@ -35,11 +35,13 @@ The solution in This model will result in having below variables:
 
 ### 2-1-3 model set or parameter definitions
 These sets or parameters will be defined during the algorithm steps
-* Distance_matrix :  a ixi-dimentional matrix of distances between nodes
+* Distance_matrix :  a i-dimentional matrix of distances between nodes
 * 
 
 ## 2-2- Objective function
+Cost function here in this model is minimizing the sum of power consumption for all vehicles. the formula is:
 
+$$\sum_{n=1}^{10} n^2$$
 ## 2-3- Hypothesis of model 
 
 # 3- Methodology
