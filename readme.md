@@ -29,6 +29,7 @@ In input file these parameters should be entered by users:
 The solution in This model will result in having below variables:
 * $x_{ij}$ : a binary vairable that show truck j has stop in node i or not $1<i<node_count$ $1<j<truk_coun$
 
+$N_{i}=(x_{i},y_{i})$
 
 ## 2-2- Objective function
 
