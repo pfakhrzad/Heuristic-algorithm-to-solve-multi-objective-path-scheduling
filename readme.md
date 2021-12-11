@@ -21,15 +21,15 @@ In input file these parameters should be entered by users:
 
 * node_count: number of nodes in distribution network
 * truk_count: number of truks available daily
-* $N_{i}=(x_{i},y_{i})$  $1<i<node_count$ : a matrix of having position of nodes
+* $N\_{i}=(x\_{i},y\_{i})$  $1<i<node_count$ : a matrix of having position of nodes
 * o : Starting point of truks
 * truck_capacity : capacity of truks
-* $s_{i}$ : available stock in node i
+* $s\_{i}$ : available stock in node i
 ### 2-1-2 Model variable
 The solution in This model will result in having below variables:
-* $x_{ij}$ : a binary vairable that show truck j has stop in node i or not $1<i<node_count$ $1<j<truk_coun$
+* $x\_{ij}$ : a binary vairable that show truck j has stop in node i or not $1<i<node_count$ $1<j<truk_coun$
 
-$N_{i}=(x_{i},y_{i})$
+$\sin^2 \theta + \cos^2 \theta = 1$
 
 ## 2-2- Objective function
 
