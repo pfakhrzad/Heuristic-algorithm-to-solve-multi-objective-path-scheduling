@@ -81,4 +81,29 @@ There is one file that input parameters should be entered and the program reads 
 
 ## 3-2- 
 
+## 3-5- Output
+At the end of algorithm we will see these outputs:
+
+`output= (Iteration, Algorithm, F(x), G(x), list, Exitflag)`
+
+**Iteration :** shows the number of iteration to obtain the optimal result
+
+**Algorithm :** name of algorithm to use for this problem
+
+**F(x) :** amount of minimum cost function
+
+**G(x) :** amount of maximum fitness function
+
+**List :** allocated nodes to each truck
+
+**Exitflags:** a number that has below definitions:
+
+Exitflag 1 : The model is solved successfully
+
+Exitflag 0 : maximum iteration exceed
+
+Exitflag -1 : no feasible solution was found
+
+Exitflag -2 : `NAN` value was encountered during running
+
 # 4- Result
