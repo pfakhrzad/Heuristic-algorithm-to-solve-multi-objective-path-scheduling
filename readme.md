@@ -16,8 +16,8 @@ In this program we have a complex model that cannot be solved by exact algorithm
 Here we are going to apply these two methods togrther for a multiple objective optimization model.
 
 ## 2-1- Parameter setting 
- ### 2-1-1 Input
-    In input file these parameters should be entered by users:
+### 2-1-1 Input
+In input file these parameters should be entered by users:
 
     * node_count: number of nodes in distribution network
     * truk_count: number of truks available daily
