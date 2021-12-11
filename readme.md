@@ -41,7 +41,7 @@ These sets or parameters will be defined during the algorithm steps
 ## 2-2- Objective function
 Cost function here in this model is minimizing the sum of power consumption for all vehicles. the formula is:
 
-$$ \sum_{n=1}^{10} n^2 $$
+\$ \sum_{n=1}^{10} n^2 \$
 
 \begin{align*}
 a & = b \\
