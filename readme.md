@@ -1,22 +1,24 @@
 A non-dominated sorting PSO Algorithm in C++ to solve multiple objective Optimization Problems
 ==============
 
-***The vehicle route and allocation optimization model is used for this programm***
+***The vehicle route and allocation optimization model is used for this program***
 
 **Author:** *Paria Fakhrzad*
 
 # 1- Introduction 
 In real world whenever we encounter shipment planning in supply chain management, we have problems as how to schedule/allocate vehicles to target customers/vendors locations. This is an logistic distribution route optimization problem. The goal is finding the best allocation of vehicles with the minimum power consumption and maximum customers fulfillment.
+Imagine we have just one vehicle and our target is just minimize the distance, this is the simplest model of path optimization that one sample is travelling salesman problem. Here we consider more complex model with increasing number of vehicle and multiple objectives.
 
 In this program we will consider three major parts:
+
 * **First:** designing  the intelligent optimization model whereas be able to accept different cases. The model can be multiple objective, can have cost functions and fitness functions, with constraints or without constraints.
 
-* **Second:** solving the problem by and non-dominated sorting meta-heuristic algorithm that here we choose PSO and GA.
+* **Second:** solving the problem by non-dominated sorting meta-heuristic algorithm that here we choose PSO.
 
-* **Third:** compare the results and give output
+* **Third:** compare the results ( not entered yet) and give output
 
 # 2- Optimization model
-In this program we have a complex model that cannot be solved by exact algorithms and we need to apply evolutionary algorithms. There are many of them in application of researches during last decade. The algorithm that we consider is particle swarm optimization(PSO) that the main concept comes from the movement of birds and fishes for searching a common target. tests
+In this program we have a complex model that cannot be solved by exact algorithms and we need to apply evolutionary algorithms. There are many of them in application of researches during last decade. The algorithm that we consider is particle swarm optimization(PSO) that the main concept comes from the movement of birds and fishes for searching a common target.
 
 ![Algorithm](Algorithm.png)
 
@@ -67,8 +69,8 @@ Since this model is complex so we assume below assumption to make it simple:
 - We assume that the path between all nodes are possible 
 - One truck cannot pass one point twice
 - If the position of two or more nodes are the same and the partial shipment is allowed they stock be collected in ones
-# 3- Methodology
 
+# 3- Methodology
 ## 3-1- Input 
 There is one file that input parameters should be entered and the program reads from this file. Need to notice to below points for having clear and trusted input:
    1. Maximum iteration is optional if you don't write it the program will consider 50 as default
@@ -79,9 +81,41 @@ There is one file that input parameters should be entered and the program reads 
 
 ![input](input.png)
 
-## 3-2- 
+## 3-2- population initialization
+In this step we used below `struct` to initialize the first particles in our population. The population size calculated based on a ratio of model possible options. It can be as user input as well. 
 
-## 3-5- Output
+```cpp
+struct solutions
+{
+    uint64_t ID;                                
+    vector<vector<uint16_t>> solution;           
+    double cost_amount;                          
+    double fitness_amount;                       
+    vector<double> fulfillment_percentage;       
+    double rank;                                 
+    vector<vector<uint16_t>> best_self_position; 
+    double velocity;                             
+};
+```
+Our solution array is `Particle_list` that will be filled by initialization functions.
+
+## 3-3- Particle movements
+In THis step each particle will be moved to the next position based on considering to be near to the best global particle and the past best-self position that is stored in the memory.
+
+## 3-4- Non-Dominate sorting
+By function `NonDominate` that is a trade-off between objectives, the rank of each particle is calculated.
+
+
+## 3-5- Best Global solution
+In every iteration the best particle based on rank will be store in this object also it will compare with the last best-global to make sure that algorithm works well.
+
+
+## 3-6- check the exit condition
+Here check if the maximum iteration exceed then print the last best global as solution and all particles with rank1 as good solutions. 
+If the number of try is less than max iteration it goes to the step 3 and repeat steps again.
+
+
+# 4- Output
 At the end of algorithm we will see these outputs:
 
 `output= (Iteration, Algorithm, F(x), G(x), list, Exitflag)`
@@ -106,4 +140,4 @@ Exitflag -1 : no feasible solution was found
 
 Exitflag -2 : `NAN` value was encountered during running
 
-# 4- Result
+# 5- Result and conclusion
