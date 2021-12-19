@@ -23,7 +23,7 @@ using namespace std;
 double read_dataset(const string &, vector<double> &, vector<double> &, vector<double> &, vector<string> &, uint64_t &, uint64_t &, double &, double &, double &);
 
 /**
- * @brief  This struct stores all possible solutions for each iterator and will be updated 
+ * @brief  This struct stores all possible solutions for each try
  */
 struct solutions
 {
@@ -37,13 +37,16 @@ struct solutions
     vector<double> best_fulfillment_percentage;  //to keep percentage of best shipment in memory
     vector<vector<double>> velocity;             //velocity of particle movement
 };
-uint64_t population; // population/Swarm size
 
-//list of particles
+//list of particles based on population for solution with order with first initialization
 vector<solutions> particle_list = {{1, {{1}}, 0, 0, {1}, 1, {{1}}, {1}, {{0}}}};
+uint16_t Algorithm1 = 1; // For giving as input argument to function to know algorithm with ordering should be run
+uint16_t Algorithm2 = 2; // For giving as input argument to function to know algorithm without ordering should be run
 
-//This is for checking segmentation fault and will be removed
-array<solutions, 20> particle_list2;
+//list of particles based on population for solution without order with first initialization
+vector<solutions> particle_list2 = {{1, {{1}}, 0, 0, {1}, 1, {{1}}, {1}, {{0}}}};
+
+uint64_t population; // population/Swarm size
 
 /**
  * @brief The PSO is main class to run the algorithm of finding the best solution for optimization model
@@ -60,19 +63,19 @@ public:
     void particle_initialization(const uint64_t &node_count, const uint64_t &truck_count, const double &truck_capacity, const vector<double> stock, const vector<string> partial, const vector<vector<double>> distance);
 
     //member function of particle ranking
-    void particle_ranking();
+    void particle_ranking(uint16_t Algorithm_number);
 
     //member function of best_global
-    void best_global_particle(double &Try, vector<vector<uint64_t>> &BestGlobal, double &Best_cost, double &Best_fitness);
+    void best_global_particle(uint16_t Algorithm_number, double &Try, vector<vector<uint64_t>> &BestGlobal, double &Best_cost, double &Best_fitness);
 
     //member function of particle movement
-    void Particle_movement(vector<vector<uint64_t>> &BestGlobal, const uint64_t &node_count, const uint64_t &truck_count, const double &truck_capacity, const vector<double> &stock, const vector<string> &partial);
+    void Particle_movement(uint16_t Algorithm_number, vector<vector<uint64_t>> &BestGlobal, const uint64_t &node_count, const uint64_t &truck_count, const double &truck_capacity, const vector<double> &stock, const vector<string> &partial);
 
     //member function of particle objective calculation
-    void particle_objective(const vector<vector<double>> &distance, const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock);
+    void particle_objective(uint16_t Algorithm_number, const vector<vector<double>> &distance, const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock);
 
     // member function of particle best memory position
-    void best_memory_particle(const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock, const vector<vector<double>> &distance);
+    void best_memory_particle(uint16_t Algorithm_number, const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock, const vector<vector<double>> &distance);
 
 private:
 };
@@ -86,7 +89,7 @@ class NonDominated : public PSO
 public:
     void dominated_list(vector<double> &rank, vector<double> &cost_amount, vector<double> &fitness_amount, uint64_t &population)
     {
-        //counting the dominant number for each particle
+        // Counting the dominant number for each particle
         for (uint64_t i = 1; i < population; i++)
         {
             for (uint64_t w = 1; w < population; w++)
@@ -100,7 +103,7 @@ public:
             dominate_number = 0;
         }
 
-        //ranking each particle
+        // Ranking each particle
         for (uint64_t i = 1; i < population; i++)
         {
             if (i == 1)
@@ -135,13 +138,13 @@ class particles : public PSO
 public:
     particles() {}
     //member function to calculate the cost objective
-    double cost_function(uint64_t memory, uint64_t &ID, const vector<vector<double>> &, const uint64_t &, const uint64_t &);
+    double cost_function(uint16_t Algorithm_number, uint64_t memory, uint64_t &ID, const vector<vector<double>> &, const uint64_t &, const uint64_t &);
 
     //member function to calculate the fitness objective
-    double fitness_function(uint64_t memory, uint64_t &ID, const vector<double> &stock, const uint64_t &node_count);
+    double fitness_function(uint16_t Algorithm_number, uint64_t memory, uint64_t &ID, const vector<double> &stock, const uint64_t &node_count);
 
     //member function to set best-self position for particle
-    void best_self_particle(const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock, const vector<vector<double>> &distance);
+    void best_self_particle(uint16_t Algorithm_number, const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock, const vector<vector<double>> &distance);
 
 private:
     vector<vector<uint64_t>> position;
@@ -151,70 +154,176 @@ private:
     double best_fitness;
 };
 
-double particles::cost_function(uint64_t memory, uint64_t &ID, const vector<vector<double>> &distance, const uint64_t &node_count, const uint64_t &truck_count)
+double particles::cost_function(uint16_t Algorithm_number, uint64_t memory, uint64_t &ID, const vector<vector<double>> &distance, const uint64_t &node_count, const uint64_t &truck_count)
 {
     double cost = 0;
-    uint64_t last_allocation = 0;
-    if (memory == 0)
+    // Cost function based on algorithm1
+    if (Algorithm_number == 1)
     {
-        for (uint64_t j = 0; j < truck_count; j++)
+
+        // Calculate cost for current particle in algorithm1
+        uint64_t last_allocation = 0;
+        if (memory == 0)
         {
-            for (uint64_t k = 0; k < node_count; k++)
+            for (uint64_t j = 0; j < truck_count; j++)
             {
-                if (particle_list[ID].solution[j][k] == 1)
+                for (uint64_t k = 0; k < node_count; k++)
                 {
-                    cost = cost + distance[last_allocation][k + 1];
-                    last_allocation = k + 1;
+                    if (particle_list[ID].solution[j][k] == 1)
+                    {
+                        cost = cost + distance[last_allocation][k + 1];
+                        last_allocation = k + 1;
+                    }
                 }
+                last_allocation = 0;
             }
-            last_allocation = 0;
+            return cost;
         }
-        return cost;
+
+        //calculate cost for best memory of particle
+        else
+        {
+            for (uint64_t j = 0; j < truck_count; j++)
+            {
+                for (uint64_t k = 0; k < node_count; k++)
+                {
+                    if (particle_list[ID].best_self_position[j][k] == 1)
+                    {
+                        cost = cost + distance[last_allocation][k + 1];
+                        last_allocation = k + 1;
+                    }
+                }
+                last_allocation = 0;
+            }
+            return cost;
+        }
     }
+
+    // cost function in algorithm2
     else
     {
-        for (uint64_t j = 0; j < truck_count; j++)
+        // Calculate cost for current particle in algorithm1
+        if (memory == 0)
         {
-            for (uint64_t k = 0; k < node_count; k++)
+            for (uint64_t j = 0; j < truck_count; j++)
             {
-                if (particle_list[ID].best_self_position[j][k] == 1)
+                for (uint64_t k = 0; k < node_count; k++)
                 {
-                    cost = cost + distance[last_allocation][k + 1];
-                    last_allocation = k + 1;
+                    //check for first allocated node
+                    if (particle_list2[ID].solution[j][k] == 1)
+                    {
+                        cost = cost + distance[0][k + 1];
+                    }
+                    else if (particle_list2[ID].solution[j][k] > 1)
+                    {
+                        for (uint64_t l = 0; l < node_count; l++)
+                        {
+                            //finding the previouse code
+                            if (particle_list2[ID].solution[j][k] - particle_list2[ID].solution[j][l] == 1)
+                            {
+                                cost = cost + distance[k + 1][l + 1];
+                                break;
+                            }
+                        }
+                    }
                 }
             }
-            last_allocation = 0;
+            return cost;
         }
-        return cost;
+
+        //calculate cost for best memory of particle
+        else
+        {
+            for (uint64_t j = 0; j < truck_count; j++)
+            {
+                for (uint64_t k = 0; k < node_count; k++)
+                {
+                    //check for first allocated node
+                    if (particle_list2[ID].best_self_position[j][k] == 1)
+                    {
+                        cost = cost + distance[0][k + 1];
+                    }
+                    else if (particle_list2[ID].best_self_position[j][k] > 1)
+                    {
+                        for (uint64_t l = 0; l < node_count; l++)
+                        {
+                            //finding the previouse code
+                            if (particle_list2[ID].best_self_position[j][k] - particle_list2[ID].best_self_position[j][l] == 1)
+                            {
+                                cost = cost + distance[k + 1][l + 1];
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            return cost;
+        }
     }
 }
 
-double particles::fitness_function(uint64_t memory, uint64_t &ID, const vector<double> &stock, const uint64_t &node_count)
+double particles::fitness_function(uint16_t Algorithm_number, uint64_t memory, uint64_t &ID, const vector<double> &stock, const uint64_t &node_count)
 {
     try
     {
         double fulfillment_den = 0; //denominator
         double fulfillment_num = 0; //numerator
         double fulfillment = 0;
-        if (memory == 0)
+
+        //calculating fitness objective for algorithm 1 that order of nodes is important
+        if (Algorithm_number == 1)
         {
-            for (uint64_t i = 0; i < node_count; i++)
+
+            //calculate fitness for current particle
+            if (memory == 0)
             {
-                fulfillment_num += stock[i] * particle_list[ID].fulfillment_percentage[i];
-                fulfillment_den += stock[i];
+                for (uint64_t i = 0; i < node_count; i++)
+                {
+                    fulfillment_num += stock[i] * particle_list[ID].fulfillment_percentage[i];
+                    fulfillment_den += stock[i];
+                }
+                fulfillment = fulfillment_num / fulfillment_den;
+                return fulfillment;
             }
-            fulfillment = fulfillment_num / fulfillment_den;
-            return fulfillment;
+
+            //calculating fitness for best memory of particle
+            else
+            {
+                for (uint64_t i = 0; i < node_count; i++)
+                {
+                    fulfillment_num += stock[i] * particle_list[ID].best_fulfillment_percentage[i];
+                    fulfillment_den += stock[i];
+                }
+                fulfillment = fulfillment_num / fulfillment_den;
+                return fulfillment;
+            }
         }
-        else //needs to be modified for best self position
+        // Calculating fitness objective based on algorithm2 that is without ordering
+        else
         {
-            for (uint64_t i = 0; i < node_count; i++)
+            //calculate fitness for current particle in algorithm2
+            if (memory == 0)
             {
-                fulfillment_num += stock[i] * particle_list[ID].best_fulfillment_percentage[i];
-                fulfillment_den += stock[i];
+                for (uint64_t i = 0; i < node_count; i++)
+                {
+                    fulfillment_num += stock[i] * particle_list2[ID].fulfillment_percentage[i];
+                    fulfillment_den += stock[i];
+                }
+                fulfillment = fulfillment_num / fulfillment_den;
+                return fulfillment;
             }
-            fulfillment = fulfillment_num / fulfillment_den;
-            return fulfillment;
+
+            //calculating fitness for best memory of particle in algorithm2
+            else
+            {
+                for (uint64_t i = 0; i < node_count; i++)
+                {
+                    fulfillment_num += stock[i] * particle_list2[ID].best_fulfillment_percentage[i];
+                    fulfillment_den += stock[i];
+                }
+                fulfillment = fulfillment_num / fulfillment_den;
+                return fulfillment;
+            }
         }
     }
     catch (invalid_argument &e)
@@ -223,15 +332,15 @@ double particles::fitness_function(uint64_t memory, uint64_t &ID, const vector<d
     }
 }
 
-void particles::best_self_particle(const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock, const vector<vector<double>> &distance)
+void particles::best_self_particle(uint16_t Algorithm_number, const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock, const vector<vector<double>> &distance)
 {
     for (uint64_t i = 1; i < population; i++)
     {
         particles best_self_cost;
         particles best_self_fitness;
 
-        double self_cost = best_self_cost.cost_function(1, i, distance, node_count, truck_count); // first argument shows it is memory
-        double self_fitness = best_self_fitness.fitness_function(1, i, stock, node_count);
+        double self_cost = best_self_cost.cost_function(Algorithm1, 1, i, distance, node_count, truck_count); // first argument shows it is memory
+        double self_fitness = best_self_fitness.fitness_function(Algorithm1, 1, i, stock, node_count);
 
         if (particle_list[i].cost_amount < self_cost && particle_list[i].fitness_amount > self_fitness)
         {
@@ -241,11 +350,22 @@ void particles::best_self_particle(const uint64_t &node_count, const uint64_t &t
     }
 }
 
+/**
+ * @brief  This function will randomly initialize the particles in solution space and calculate all section of a solution
+ * 
+ * @param node_count  This is number of nodes that has been entered in input file
+ * @param truck_count  This is number of available truck daily that has been entered in input file
+ * @param truck_capacity Capacity of each truck
+ * @param stock  Available stock in each node for picking
+ * @param partial This is a boolian variable that shows partial shipment is allowed or not
+ * @param distance This is a matrix that keeps the distance between two nodes
+ */
 void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &truck_count, const double &truck_capacity, const vector<double> stock, const vector<string> partial, const vector<vector<double>> distance)
 {
     //control parameters for initializing
     double filled_capacity = 0;
     set<uint64_t> allocated_set;
+    uint64_t NumberOfNodes_truck = 0;
 
     //random allocation between 0 and 1
     random_device rd;
@@ -261,13 +381,16 @@ void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &tr
     for (uint64_t i = 1; i < population; i++)
     {
         particle_list.push_back({i, first_pop, 0, 1, fulfillment_percentage_truck, 0, first_pop, fulfillment_percentage_truck, first_pop2});
+        particle_list2.push_back({i, first_pop, 0, 1, fulfillment_percentage_truck, 0, first_pop, fulfillment_percentage_truck, first_pop2});
     }
 
     for (uint64_t i = 1; i < population; i++)
     {
         particle_list[i].ID = i;
+        particle_list2[i].ID = i;
         for (uint64_t j = 0; j < truck_count; j++)
         {
+            NumberOfNodes_truck = 0;
             for (uint64_t k = 0; k < node_count; k++)
             {
                 uint64_t cell = uid(mt);
@@ -275,6 +398,8 @@ void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &tr
                 {
                     particle_list[i].solution[j][k] = cell;
                     particle_list[i].best_self_position[j][k] = cell;
+                    particle_list2[i].solution[j][k] = cell;
+                    particle_list2[i].best_self_position[j][k] = cell;
                 }
                 else
                 {
@@ -282,12 +407,17 @@ void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &tr
                     {
                         if ((truck_capacity - filled_capacity) < stock[k] && partial[k] == "Yes")
                         {
+                            NumberOfNodes_truck++;
                             particle_list[i].solution[j][k] = cell;
                             particle_list[i].best_self_position[j][k] = cell;
+                            particle_list2[i].solution[j][k] = NumberOfNodes_truck;
+                            particle_list2[i].best_self_position[j][k] = NumberOfNodes_truck;
                             if (particle_list[i].solution[j][k] == 1)
                             {
                                 particle_list[i].fulfillment_percentage[k] = ((truck_capacity - filled_capacity) / stock[k]);
                                 particle_list[i].best_fulfillment_percentage[k] = ((truck_capacity - filled_capacity) / stock[k]);
+                                particle_list2[i].fulfillment_percentage[k] = ((truck_capacity - filled_capacity) / stock[k]);
+                                particle_list2[i].best_fulfillment_percentage[k] = ((truck_capacity - filled_capacity) / stock[k]);
                             }
                             filled_capacity += (double)cell * (truck_capacity - filled_capacity);
 
@@ -297,16 +427,23 @@ void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &tr
                         {
                             particle_list[i].solution[j][k] = 0;
                             particle_list[i].best_self_position[j][k] = 0;
+                            particle_list2[i].solution[j][k] = 0;
+                            particle_list2[i].best_self_position[j][k] = 0;
                         }
                         else
                         {
+                            NumberOfNodes_truck++;
                             particle_list[i].solution[j][k] = cell;
                             particle_list[i].best_self_position[j][k] = cell;
+                            particle_list2[i].solution[j][k] = NumberOfNodes_truck;
+                            particle_list2[i].best_self_position[j][k] = NumberOfNodes_truck;
                             filled_capacity += (double)particle_list[i].solution[j][k] * stock[k];
                             if (particle_list[i].solution[j][k] == 1)
                             {
                                 particle_list[i].fulfillment_percentage[k] = 1;
                                 particle_list[i].best_fulfillment_percentage[k] = 1;
+                                particle_list2[i].fulfillment_percentage[k] = 1;
+                                particle_list2[i].best_fulfillment_percentage[k] = 1;
                                 allocated_set.insert(k);
                             }
                         }
@@ -315,6 +452,8 @@ void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &tr
                     {
                         particle_list[i].solution[j][k] = 0;
                         particle_list[i].best_self_position[j][k] = 0;
+                        particle_list2[i].solution[j][k] = 0;
+                        particle_list2[i].best_self_position[j][k] = 0;
                     }
                 }
             }
@@ -329,206 +468,367 @@ void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &tr
     for (uint64_t i = 1; i < population; i++)
     {
         particles particle;
-        particle_list[i].cost_amount = particle.cost_function(0, i, distance, node_count, truck_count);
-        particle_list[i].fitness_amount = particle.fitness_function(0, i, stock, node_count);
+        particle_list[i].cost_amount = particle.cost_function(Algorithm1, 0, i, distance, node_count, truck_count);
+        particle_list[i].fitness_amount = particle.fitness_function(Algorithm1, 0, i, stock, node_count);
+        particle_list2[i].cost_amount = particle.cost_function(Algorithm2, 0, i, distance, node_count, truck_count);
+        particle_list2[i].fitness_amount = particle.fitness_function(Algorithm2, 0, i, stock, node_count);
     }
+    /*
+
+    //will be removed
+    cout << "-------------------------------------------------------" << '\n';
+    for (uint64_t i = 1; i < population; i++)
+    {
+        cout << "particle " << i << " solution1" << '\n';
+        for (uint64_t j = 0; j < truck_count; j++)
+        {
+            for (uint64_t k = 0; k < node_count; k++)
+            {
+
+                cout << particle_list[i].solution[j][k] << '\t';
+            }
+            cout << '\n';
+        }
+        cout << "particle " << i << " cost and fitness" << '\n';
+        cout << particle_list[i].cost_amount << '\t' << particle_list[i].fitness_amount;
+        cout << '\n';
+    }
+
+    //will be removed
+    cout << "-------------------------------------------------------" << '\n';
+    for (uint64_t i = 1; i < population; i++)
+    {
+        cout << "particle " << i << " solution2" << '\n';
+        for (uint64_t j = 0; j < truck_count; j++)
+        {
+            for (uint64_t k = 0; k < node_count; k++)
+            {
+
+                cout << particle_list2[i].solution[j][k] << '\t';
+            }
+            cout << '\n';
+        }
+        cout << "particle " << i << " cost and fitness" << '\n';
+        cout << particle_list2[i].cost_amount << '\t' << particle_list2[i].fitness_amount;
+        cout << '\n';
+    }*/
 }
 
-void PSO::particle_ranking()
+void PSO::particle_ranking(uint16_t Algorithm_number)
 {
     NonDominated first_rank;
     vector<double> rank_list;
     vector<double> cost_amount;
     vector<double> fitness_amount;
-    for (uint64_t i = 1; i < population; i++)
-    {
-        cost_amount.push_back(particle_list[i].cost_amount);
-        fitness_amount.push_back(particle_list[i].fitness_amount);
-    }
-    first_rank.dominated_list(rank_list, cost_amount, fitness_amount, population);
-    for (uint64_t i = 1; i < population; i++)
-    {
-        particle_list[i].rank = rank_list[i - 1];
-    }
-}
 
-void PSO::best_global_particle(double &Try, vector<vector<uint64_t>> &BestGlobal, double &Best_cost, double &Best_fitness)
-{
-    if (Try == 0)
+    // Rank particles based on algorithm1
+    if (Algorithm_number == 1)
     {
-        uint64_t rank_count = 0;
         for (uint64_t i = 1; i < population; i++)
         {
-            if (particle_list[i].rank == 1)
-            {
-                rank_count++;
+            cost_amount.push_back(particle_list[i].cost_amount);
+            fitness_amount.push_back(particle_list[i].fitness_amount);
+        }
 
-                //first filling the targets for next compare
-                if (rank_count == 1)
-                {
-                    Best_cost = particle_list[i].cost_amount;
-                    Best_fitness = particle_list[i].fitness_amount;
-                    BestGlobal = particle_list[i].solution;
-                }
-                else
-                {
-                    if (particle_list[i].cost_amount < Best_cost && particle_list[i].fitness_amount > Best_fitness)
-                    {
-                        Best_cost = particle_list[i].cost_amount;
-                        Best_fitness = particle_list[i].fitness_amount;
-                        BestGlobal = particle_list[i].solution;
-                    }
-                }
-            }
+        first_rank.dominated_list(rank_list, cost_amount, fitness_amount, population);
+        for (uint64_t i = 1; i < population; i++)
+        {
+            particle_list[i].rank = rank_list[i - 1];
         }
     }
+
+    // Rank particles based on algorithm2
     else
     {
         for (uint64_t i = 1; i < population; i++)
         {
-            if (particle_list[i].rank == 1)
-            {
-                //comparing to old best_global
-                if (particle_list[i].cost_amount < Best_cost && particle_list[i].fitness_amount > Best_fitness)
-                {
-                    Best_cost = particle_list[i].cost_amount;
-                    Best_fitness = particle_list[i].fitness_amount;
-                    BestGlobal = particle_list[i].solution;
-                }
-                else if (particle_list[i].cost_amount < Best_cost && (((Best_cost - particle_list[i].cost_amount) / Best_cost) > .5))
-                {
-                    if ((Best_fitness - particle_list[i].fitness_amount) / Best_fitness < .2)
-                    {
-                        Best_cost = particle_list[i].cost_amount;
-                        Best_fitness = particle_list[i].fitness_amount;
-                        BestGlobal = particle_list[i].solution;
-                    }
-                }
-                else
-                {
-                    if (((particle_list[i].fitness_amount - Best_fitness) / Best_fitness) > .7)
-                    {
-                        Best_cost = particle_list[i].cost_amount;
-                        Best_fitness = particle_list[i].fitness_amount;
-                        BestGlobal = particle_list[i].solution;
-                    }
-                }
-            }
+            cost_amount.push_back(particle_list2[i].cost_amount);
+            fitness_amount.push_back(particle_list2[i].fitness_amount);
+        }
+
+        first_rank.dominated_list(rank_list, cost_amount, fitness_amount, population);
+        for (uint64_t i = 1; i < population; i++)
+        {
+            particle_list2[i].rank = rank_list[i - 1];
         }
     }
-};
+}
 
-void PSO::Particle_movement(vector<vector<uint64_t>> &BestGlobal, const uint64_t &node_count, const uint64_t &truck_count, const double &truck_capacity, const vector<double> &stock, const vector<string> &partial)
+void PSO::best_global_particle(uint16_t Algorithm_number, double &Try, vector<vector<uint64_t>> &BestGlobal, double &Best_cost, double &Best_fitness)
 {
-    double max_variable = 1;
-    double min_variable = 0;
-
-    //calculating each particle new velocity
-    double max_velocity = 1 * (max_variable - min_variable);
-    double min_velocity = -max_velocity;
-    double velo; //just for checking that is in the range or not
-    static double w = 1;
-    double wdamp = 0.99;
-    double c1 = 2;
-    double c2 = 2; //personal and global learning coefficient
-    double r1, r2; //a random parameter that is [0, 1]
-    vector<vector<double>> velocity_new;
-    vector<double> velocity_truck; // this is just for creating each row of matrix
-    random_device random;
-    mt19937 mt(random());
-    uniform_real_distribution<double> uid(0, 1);
-
-    for (uint64_t i = 1; i < population; i++)
+    try
     {
-        for (uint64_t j = 0; j < truck_count; j++)
+        // Calculating the best global particle for algorithm1
+        if (Algorithm_number == 1)
         {
-            for (uint64_t k = 0; k < node_count; k++)
+            // If this is the first time for filling best global and no need to comparison with memory
+            if (Try == 0)
             {
-                r1 = uid(mt);
-                r2 = uid(mt);
-                velo = ((w * particle_list[i].velocity[j][k]) + c1 * r1 * ((double)particle_list[i].best_self_position[j][k] - (double)particle_list[i].solution[j][k]) + c2 * r2 * ((double)BestGlobal[j][k] - (double)particle_list[i].solution[j][k]));
-
-                if (velo > max_velocity || velo < min_velocity)
+                uint64_t rank_count = 0;
+                for (uint64_t i = 1; i < population; i++)
                 {
-                    velo = 0;
-                }
-                velocity_truck.push_back(velo);
-            }
-            particle_list[i].velocity.push_back(velocity_truck);
-            velocity_truck.clear();
-        }
-    }
-
-    w = wdamp * w;
-    //calculating new particle positions based on new velocity
-    uint64_t new_variable;       // just for checking that new variable is between range
-    set<uint64_t> allocated_set; //for checking that each node be in just one truck
-    double filled_capacity = 0;  // for capacity
-
-    for (uint64_t i = 1; i < population; i++)
-    {
-        for (uint64_t j = 0; j < truck_count; j++)
-        {
-            for (uint64_t k = 0; k < node_count; k++)
-            {
-                if ((double)particle_list[i].solution[j][k] + particle_list[i].velocity[j][k] < 0.5)
-                {
-                    new_variable = 0;
-                }
-                else
-                {
-                    new_variable = 1;
-                }
-                if (new_variable == 0)
-                    particle_list[i].solution[j][k] = new_variable;
-                else
-                {
-                    if (allocated_set.count(k) == 0)
+                    if (particle_list[i].rank == 1)
                     {
-                        if ((truck_capacity - filled_capacity) < stock[k] && partial[k] == "Yes")
+                        rank_count++;
+
+                        // First filling the targets for next compare
+                        if (rank_count == 1)
                         {
-                            particle_list[i].solution[j][k] = new_variable;
-                            filled_capacity += (truck_capacity - filled_capacity);
-                            particle_list[i].fulfillment_percentage[k] = ((truck_capacity - filled_capacity) / stock[k]);
-                            allocated_set.insert(k);
-                        }
-                        else if ((truck_capacity - filled_capacity) < stock[k] && partial[k] == "No")
-                        {
-                            particle_list[i].solution[j][k] = 0;
+                            Best_cost = particle_list[i].cost_amount;
+                            Best_fitness = particle_list[i].fitness_amount;
+                            BestGlobal = particle_list[i].solution;
                         }
                         else
                         {
-                            particle_list[i].solution[j][k] = new_variable;
-                            filled_capacity += stock[k];
-                            particle_list[i].fulfillment_percentage[k] = 1;
-                            allocated_set.insert(k);
+                            if (particle_list[i].cost_amount < Best_cost && particle_list[i].fitness_amount > Best_fitness)
+                            {
+                                Best_cost = particle_list[i].cost_amount;
+                                Best_fitness = particle_list[i].fitness_amount;
+                                BestGlobal = particle_list[i].solution;
+                            }
                         }
                     }
-                    else
+                }
+            }
+            // IF try is more than 0 and need to compare with memory of best global
+            else
+            {
+                for (uint64_t i = 1; i < population; i++)
+                {
+                    if (particle_list[i].rank == 1)
                     {
-                        particle_list[i].solution[j][k] = 0;
+                        // Comparing to old best_global
+                        if (particle_list[i].cost_amount < Best_cost && particle_list[i].fitness_amount > Best_fitness)
+                        {
+                            Best_cost = particle_list[i].cost_amount;
+                            Best_fitness = particle_list[i].fitness_amount;
+                            BestGlobal = particle_list[i].solution;
+                        }
+                        else if ((((Best_cost - particle_list[i].cost_amount) / Best_cost) > .5))
+                        {
+                            if ((Best_fitness - particle_list[i].fitness_amount) / Best_fitness < .2)
+                            {
+                                Best_cost = particle_list[i].cost_amount;
+                                Best_fitness = particle_list[i].fitness_amount;
+                                BestGlobal = particle_list[i].solution;
+                            }
+                        }
+                        else
+                        {
+                            if (((particle_list[i].fitness_amount - Best_fitness) / Best_fitness) > .5)
+                            {
+                                if (((particle_list2[i].cost_amount - Best_cost) / Best_cost) < .2)
+                                {
+                                    Best_cost = particle_list[i].cost_amount;
+                                    Best_fitness = particle_list[i].fitness_amount;
+                                    BestGlobal = particle_list[i].solution;
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-        allocated_set.clear();
+        // Calculating the best global particle for algorithm 2 that the object is particle_list2
+        else
+        {
+            // Calculating the best global for first time and without needing to compare with the memory
+            if (Try == 0)
+            {
+                uint64_t rank_count = 0;
+                for (uint64_t i = 1; i < population; i++)
+                {
+                    if (particle_list2[i].rank == 1)
+                    {
+                        rank_count++;
+
+                        // First filling the targets for next compare
+                        if (rank_count == 1)
+                        {
+                            Best_cost = particle_list2[i].cost_amount;
+                            Best_fitness = particle_list2[i].fitness_amount;
+                            BestGlobal = particle_list2[i].solution;
+                        }
+                        else
+                        {
+                            if (particle_list2[i].cost_amount < Best_cost && particle_list2[i].fitness_amount > Best_fitness)
+                            {
+                                Best_cost = particle_list2[i].cost_amount;
+                                Best_fitness = particle_list2[i].fitness_amount;
+                                BestGlobal = particle_list2[i].solution;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // If the try is bigger than 0 and best global needs to be compared with memory
+            else
+            {
+                for (uint64_t i = 1; i < population; i++)
+                {
+                    if (particle_list2[i].rank == 1)
+                    {
+                        // Comparing to memory of best global
+                        if (particle_list2[i].cost_amount < Best_cost && particle_list2[i].fitness_amount > Best_fitness)
+                        {
+                            Best_cost = particle_list2[i].cost_amount;
+                            Best_fitness = particle_list2[i].fitness_amount;
+                            BestGlobal = particle_list2[i].solution;
+                        }
+                        else if (((Best_cost - particle_list2[i].cost_amount) / Best_cost) > .5)
+                        {
+                            if ((Best_fitness - particle_list2[i].fitness_amount) / Best_fitness < .2)
+                            {
+                                Best_cost = particle_list2[i].cost_amount;
+                                Best_fitness = particle_list2[i].fitness_amount;
+                                BestGlobal = particle_list2[i].solution;
+                            }
+                        }
+                        else
+                        {
+                            if (((particle_list2[i].fitness_amount - Best_fitness) / Best_fitness) > .5)
+                            {
+                                if (((particle_list2[i].cost_amount - Best_cost) / Best_cost) < .2)
+                                {
+                                    Best_cost = particle_list2[i].cost_amount;
+                                    Best_fitness = particle_list2[i].fitness_amount;
+                                    BestGlobal = particle_list2[i].solution;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    catch (invalid_argument &e)
+    {
+        cout << "Error: calculation error with inf number";
+        throw invalid_argument("Update dataset!");
     }
 };
 
-void PSO::particle_objective(const vector<vector<double>> &distance, const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock)
+void PSO::Particle_movement(uint16_t Algorithm_number, vector<vector<uint64_t>> &BestGlobal, const uint64_t &node_count, const uint64_t &truck_count, const double &truck_capacity, const vector<double> &stock, const vector<string> &partial)
+{
+    // Movign particles in algorithm1 when the order of nodes is important and should be based on input dataset
+    if (Algorithm_number == 1)
+    {
+        double max_variable = 1;
+        double min_variable = 0;
+
+        // Calculating each particle new velocity
+        double max_velocity = 1 * (max_variable - min_variable);
+        double min_velocity = -max_velocity;
+        double velo; //just for checking that is in the range or not
+        static double w = 1;
+        double wdamp = 0.99;
+        double c1 = 2;
+        double c2 = 2; //personal and global learning coefficient
+        double r1, r2; //a random parameter that is [0, 1]
+        vector<vector<double>> velocity_new;
+        vector<double> velocity_truck; // this is just for creating each row of matrix
+        random_device random;
+        mt19937 mt(random());
+        uniform_real_distribution<double> uid(0, 1);
+
+        for (uint64_t i = 1; i < population; i++)
+        {
+            for (uint64_t j = 0; j < truck_count; j++)
+            {
+                for (uint64_t k = 0; k < node_count; k++)
+                {
+                    r1 = uid(mt);
+                    r2 = uid(mt);
+                    velo = ((w * particle_list[i].velocity[j][k]) + c1 * r1 * ((double)particle_list[i].best_self_position[j][k] - (double)particle_list[i].solution[j][k]) + c2 * r2 * ((double)BestGlobal[j][k] - (double)particle_list[i].solution[j][k]));
+
+                    if (velo > max_velocity || velo < min_velocity)
+                    {
+                        velo = 0;
+                    }
+                    velocity_truck.push_back(velo);
+                }
+                particle_list[i].velocity.push_back(velocity_truck);
+                velocity_truck.clear();
+            }
+        }
+
+        w = wdamp * w;
+        
+        //calculating new particle positions based on new velocity
+        uint64_t new_variable;       // just for checking that new variable is between range
+        set<uint64_t> allocated_set; //for checking that each node be in just one truck
+        double filled_capacity = 0;  // for capacity
+
+        for (uint64_t i = 1; i < population; i++)
+        {
+            for (uint64_t j = 0; j < truck_count; j++)
+            {
+                for (uint64_t k = 0; k < node_count; k++)
+                {
+                    if ((double)particle_list[i].solution[j][k] + particle_list[i].velocity[j][k] < 0.5)
+                    {
+                        new_variable = 0;
+                    }
+                    else
+                    {
+                        new_variable = 1;
+                    }
+                    if (new_variable == 0)
+                        particle_list[i].solution[j][k] = new_variable;
+                    else
+                    {
+                        if (allocated_set.count(k) == 0)
+                        {
+                            if ((truck_capacity - filled_capacity) < stock[k] && partial[k] == "Yes")
+                            {
+                                particle_list[i].solution[j][k] = new_variable;
+                                filled_capacity += (truck_capacity - filled_capacity);
+                                particle_list[i].fulfillment_percentage[k] = ((truck_capacity - filled_capacity) / stock[k]);
+                                allocated_set.insert(k);
+                            }
+                            else if ((truck_capacity - filled_capacity) < stock[k] && partial[k] == "No")
+                            {
+                                particle_list[i].solution[j][k] = 0;
+                            }
+                            else
+                            {
+                                particle_list[i].solution[j][k] = new_variable;
+                                filled_capacity += stock[k];
+                                particle_list[i].fulfillment_percentage[k] = 1;
+                                allocated_set.insert(k);
+                            }
+                        }
+                        else
+                        {
+                            particle_list[i].solution[j][k] = 0;
+                        }
+                    }
+                }
+            }
+            allocated_set.clear();
+        }
+    }
+    // Moving particles based on algorithm2 when the order of nodes is not important
+    else
+    {
+    }
+};
+
+void PSO::particle_objective(uint16_t Algorithm_number, const vector<vector<double>> &distance, const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock)
 {
     particles objective;
     for (uint64_t i = 1; i < population; i++)
     {
-        particle_list[i].cost_amount = objective.cost_function(1, i, distance, node_count, truck_count);
-        particle_list[i].fitness_amount = objective.fitness_function(1, i, stock, node_count);
+        particle_list[i].cost_amount = objective.cost_function(Algorithm1, 1, i, distance, node_count, truck_count);
+        particle_list[i].fitness_amount = objective.fitness_function(Algorithm1, 1, i, stock, node_count);
     }
 }
 
-void PSO::best_memory_particle(const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock, const vector<vector<double>> &distance)
+void PSO::best_memory_particle(uint16_t Algorithm_number, const uint64_t &node_count, const uint64_t &truck_count, const vector<double> &stock, const vector<vector<double>> &distance)
 {
     particles best_memory;
-    best_memory.best_self_particle(node_count, truck_count, stock, distance);
+    best_memory.best_self_particle(Algorithm_number, node_count, truck_count, stock, distance);
 }
 
 class output
@@ -581,14 +881,11 @@ public:
 private:
 };
 
-//will be added
-class AntColony
-{
-public:
-private:
-};
-
-//main block of program
+/**
+ * @brief This is the main block of program that will run all steps of algorithm
+ * 
+ * @return int the return 0 shows that program run successfully and return -1 will close program with printing the error description
+ */
 int main()
 {
     // input parameters from dataset
@@ -615,10 +912,11 @@ int main()
         cout << "Error: " << e.what() << '\n';
         return -1;
     }
-    //calculating the population for starting
-    population = ((node_count * node_count) / 2) + 1;
 
-    // print the main parameters of the model
+    // Calculating the population for starting it is a multiple of number of nodes
+    population = (node_count * node_count);
+
+    // Print the main parameters of the model
     cout << "-------------------------------------------------------" << '\n';
     cout << "node count     :" << node_count << '\n';
     cout << "truck count    :" << truck_count << '\n';
@@ -627,12 +925,12 @@ int main()
     cout << "max_iteration  :" << max_iteration << '\n';
     cout << "population     :" << population << '\n';
 
-    //The main contsiners that will be used for the algorithm
+    // The main contsiners that will be used for the algorithm
     vector<vector<double>> nodes;    //matrix of position of nodes
     vector<vector<double>> distance; //matrix of distance between nodes
     vector<double> dis_node;         //This shows distance vector for each node
 
-    //Calculating distance matrix between nodes by Euclidean method
+    // Calculating distance matrix between nodes by Euclidean method
     for (uint64_t i = 0; i < node_count + 1; i++)
     {
         for (uint64_t j = 0; j < node_count + 1; j++)
@@ -643,14 +941,17 @@ int main()
         dis_node.clear();
     }
 
-    // Running PSO Algorithm
-    PSO run; //define an object of PSO algorithm
+    /**
+     * @brief Running PSO Algorithm for Algorithm number1 that order of nodes is important and should be the same as input file
+     * 
+     */
+    PSO run; // Define an object of PSO algorithm
     static double Try = 0;
 
-    // Step 1- initialization the particles in a population
+    // Step 1- initialization the particles by random
     run.particle_initialization(node_count, truck_count, truck_capacity, stock, partial, distance);
 
-    //velocity initialization
+    // Velocity initialization-first we assume that velocity is zero for all particles
     for (uint64_t i = 1; i < population; i++)
     {
         for (uint64_t j = 0; j < truck_count; j++)
@@ -658,51 +959,60 @@ int main()
             for (uint64_t k = 0; k < node_count; k++)
             {
                 particle_list[i].velocity[j][k] = 0;
+                particle_list2[i].velocity[j][k] = 0;
             }
         }
     }
 
-    //put rank for initial particle based on non-domination algorithm
-    run.particle_ranking();
+    // Step 2- put rank for initial particle based on non-domination sorting algorithm
+    run.particle_ranking(Algorithm1);
 
-    //initial global best particle position
-    vector<vector<uint64_t>> BestGlobal;
-    double Best_cost;
-    double Best_fitness;
+    // Step 3- initial  best global particle
+    vector<vector<uint64_t>> BestGlobal_Algorithm1;
+    double Best_cost_Algorithm1;
+    double Best_fitness_Algorithm1;
     PSO initial_BestGlobal;
-    initial_BestGlobal.best_global_particle(Try, BestGlobal, Best_cost, Best_fitness);
-
-    while (Try < max_iteration)
+    initial_BestGlobal.best_global_particle(Algorithm1, Try, BestGlobal_Algorithm1, Best_cost_Algorithm1, Best_fitness_Algorithm1);
+    if (Best_cost_Algorithm1 == 0)
     {
-        //check the iteration
-        Try = Try + 1;
-
-        //Step1- particles based on best velocity of self-memory and global memory will move
-        run.Particle_movement(BestGlobal, node_count, truck_count, truck_capacity, stock, partial);
-
-        // Step2- objective calculation
-        run.particle_objective(distance, node_count, truck_count, stock);
-
-        // Step3- particle best-self position
-        run.best_memory_particle(node_count, truck_count, stock, distance);
-
-        // Step4- particle ranking
-        run.particle_ranking();
-
-        // Step5- run.best_global();
-        run.best_global_particle(Try, BestGlobal, Best_cost, Best_fitness);
-        //will be removed
+        cout << "----------------------------------" << '\n';
+        cout << "Error : There is issue in calculating the distance, check the nodes (x,y)";
+        return (-1);
     }
 
-    // Running Ant Colony Algorithm
-    //It will be added
+    // Check for exceeding to the maximum number of iteration
+    while (Try < max_iteration - 1)
+    {
+        // Updating iteration number
+        Try = Try + 1;
 
-    //Publishing the result
-    string OutputFile = "NS-PSO.csv";
+        // Step4- particles based on best velocity of self-memory and global memory will move
+        run.Particle_movement(Algorithm1, BestGlobal_Algorithm1, node_count, truck_count, truck_capacity, stock, partial);
+
+        // Step5- objective calculation
+        run.particle_objective(Algorithm1, distance, node_count, truck_count, stock);
+
+        // Step6- particle best-self position
+        run.best_memory_particle(Algorithm1, node_count, truck_count, stock, distance);
+
+        // Step7- particle ranking
+        run.particle_ranking(Algorithm1);
+
+        // Step8- run.best_global();
+        run.best_global_particle(Algorithm1, Try, BestGlobal_Algorithm1, Best_cost_Algorithm1, Best_fitness_Algorithm1);
+        if (Best_cost_Algorithm1 == 0)
+        {
+            cout << "----------------------------------" << '\n';
+            cout << " Error : There is issue in calculating the distance, check the nodes (x,y)";
+            return (-1);
+        }
+    }
+
+    // Publishing the result for  algorithm1
+    string OutputFile = "NSPSO_Output.csv";
     ofstream data_output;
-    string Algorithm = "NS-PSO";
+    string Algorithm = "NS-PSO-with order";
     output result;
-
     data_output.open(OutputFile, ios::out);
     if (!data_output.is_open())
     {
@@ -710,14 +1020,54 @@ int main()
         data_output.close();
         return -1;
     }
-    result.print(Try, Algorithm, BestGlobal, Best_cost, Best_fitness, node_count, truck_count);
-    result.file(data_output, Try, BestGlobal, node_count, truck_count);
+    result.print(Try, Algorithm, BestGlobal_Algorithm1, Best_cost_Algorithm1, Best_fitness_Algorithm1, node_count, truck_count);
+    result.file(data_output, Try, BestGlobal_Algorithm1, node_count, truck_count);
+
+    /**
+ * @brief Running PSO Algorithm for second solution that order of nodes is not important
+ * 
+ */
+    PSO run2; // Define an object of PSO algorithm
+    static double Try2 = 0;
+    // Step1 had been already done in algorithm1 because we want to have same initial particle to compare the algorithms so no need to do it again
+
+    // Step 2- Put rank for initial particle based on non-domination sorting algorithm
+    run.particle_ranking(Algorithm2);
+
+    // Step3- initial global best particle position
+    vector<vector<uint64_t>> BestGlobal_Algorithm2;
+    double Best_cost_Algorithm2;
+    double Best_fitness_Algorithm2;
+    PSO initial_BestGlobal2;
+    initial_BestGlobal2.best_global_particle(Algorithm2, Try2, BestGlobal_Algorithm2, Best_cost_Algorithm2, Best_fitness_Algorithm2);
+
+    // Check for excedding to the maximum number of iteration
+    while (Try2 < max_iteration)
+    {
+        // updating iteration number
+        Try2 = Try2 + 1;
+
+        // Step4- particles based on best velocity of self-memory and global memory will move
+        run.Particle_movement(Algorithm2, BestGlobal_Algorithm2, node_count, truck_count, truck_capacity, stock, partial);
+
+        // Step5- objective calculation
+        run.particle_objective(Algorithm2, distance, node_count, truck_count, stock);
+
+        // Step6- particle best-self position
+        run.best_memory_particle(Algorithm2, node_count, truck_count, stock, distance);
+
+        // Step7- particle ranking
+        run.particle_ranking(Algorithm2);
+
+        // Step8- run.best_global();
+        run.best_global_particle(Algorithm2, Try, BestGlobal_Algorithm2, Best_cost_Algorithm2, Best_fitness_Algorithm2);
+    }
     data_output.close();
     return 0;
 }
 
 /**
- * @brief This function will read the optimization problem parameteres
+ * @brief This function will read the path scheduling model parameteres
  * @param model file name
  * @param node_x a control variable
  * @param node_y a control variable
@@ -745,6 +1095,7 @@ double read_dataset(const string &model, vector<double> &node_x, vector<double> 
         {
             while (getline(dataset, line))
             {
+                //cout<< line<<'\n'; will be removed
                 if ((line_number > 0) && (node_count > line_number - 1))
                 {
                     stringstream extractLine(line);
@@ -753,6 +1104,7 @@ double read_dataset(const string &model, vector<double> &node_x, vector<double> 
 
                     while (getline(extractLine, element, ','))
                     {
+                        //  cout<< element<<'\n'; will be removed
                         try
                         {
                             //reading main parameters
