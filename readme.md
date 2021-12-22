@@ -52,6 +52,7 @@ The solution in this model will result in having the below variables:
 
 ### Model set or parameter definitions
 These sets/parameters will be defined during the algorithm steps:
+
 * Distance_matrix :  a i-dimensional matrix of distances between nodes
 * $d_{ik}$ distance between node i and k , $d_{ik}=d_{ki}$
 * $P_{i}$ the fulfilled percentage of each node
