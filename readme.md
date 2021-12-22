@@ -110,6 +110,13 @@ struct solutions
     double velocity;                             
 };
 ```
+
+Some display math:
+```math
+e^{i\pi} + 1 = 0
+```
+and some inline math, $`a^2 + b^2 = c^2`$.
+
 Both two solutions will be filled by initialization functions at first.
 
 ## Particle movements
