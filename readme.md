@@ -153,7 +153,7 @@ At the end of algorithm we will see these outputs:
 We test this program with 25 nodes in a graph and 6 available trucks. The population is 625 particles. This is the result after 50 iteration:
 ``` c++
 -------------------------------------------------------
- Reading File....    elapsed_time: 0.0017278
+ Reading File....              elapsed_time: 0.0017278
 -------------------------------------------------------
 node count     : 25
 truck count    : 6
