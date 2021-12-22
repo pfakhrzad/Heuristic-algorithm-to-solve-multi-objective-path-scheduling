@@ -153,7 +153,7 @@ At the end of algorithm we will see these outputs:
 We test this program with 25 nodes in a graph and 6 available trucks. The population is 625 particles. This is the result after 50 iteration:
 ``` c++
 -------------------------------------------------------
- Reading File....    elapsed_time: 0.0017278
+ Reading File....              elapsed_time: 0.0017278
 -------------------------------------------------------
 node count     : 25
 truck count    : 6
@@ -197,11 +197,16 @@ Max G(x)  : 0.86817
 
 Best vehicle allocations :
 Truck 1 :
-        0       1       0       2       0       0       0       0       0       0       0       0       0       3       0       0       0    0Truck 2 :
-        0       0       0       0       0       0       0       2       4       3       5       0       0       0       1       0       0    0Truck 3 :
-        0       0       1       0       0       0       0       0       0       0       0       0       0       0       0       0       0    0Truck 4 :
-        1       0       0       0       0       0       0       0       0       0       0       4       0       0       0       0       0    0Truck 5 :
-        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       2       0    0Truck 6 :
+        0       1       0       2       0       0       0       0       0       0       0       0       0       3       0       0       0    0
+Truck 2 :
+        0       0       0       0       0       0       0       2       4       3       5       0       0       0       1       0       0    0
+Truck 3 :
+        0       0       1       0       0       0       0       0       0       0       0       0       0       0       0       0       0    0
+Truck 4 :
+        1       0       0       0       0       0       0       0       0       0       0       4       0       0       0       0       0    0
+Truck 5 :
+        0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       2       0    0
+Truck 6 :
         0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0       0    1
 
 
