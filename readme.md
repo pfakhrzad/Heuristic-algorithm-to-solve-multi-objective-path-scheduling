@@ -1,5 +1,5 @@
 
-A non-dominated sorting PSO Algorithm in C++ to solve multiple objective Optimization Problems
+A non-dominated sorting PSO algorithm in C++ to solve multiple objective optimization problems
 ==============
 
 ***The vehicle route and allocation optimization model is used for this program***
