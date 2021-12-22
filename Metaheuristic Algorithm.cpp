@@ -227,8 +227,10 @@ public:
         }
         else
         {
+            cout << '\n';
             cout << "The input file opened with error" << '\n';
             dataset.close();
+            throw invalid_argument("Check your dataset!");
             return -1;
         }
         dataset.close();
@@ -516,7 +518,7 @@ double particles::fitness_function(uint16_t Algorithm_number, uint64_t memory, u
             }
         }
         // Calculating fitness objective based on algorithm2 that is without ordering
-        else if(Algorithm_number==2)
+        else
         {
             // Calculate fitness for current particle in algorithm2
             if (memory == 0)
@@ -706,13 +708,13 @@ void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &tr
             // based on shortest distance assign nodes for each truck when the order of nodes is not important
             vector<double> min_distance;        // A vector to keep the distances
             set<uint64_t> allocated_node_truck; // Allocated nodes number to each truck
-            uint64_t NumberNode = 0; // For just preventing duplicated node number in a path
+            uint64_t NumberNode = 0;            // For just preventing duplicated node number in a path
             allocated_node_truck.clear();
             for (uint64_t k = 0; k < node_count; k++)
             {
                 if (particle_list2[i].solution[j][k] > 0)
                 {
-                  //  cout << distance[0][k + 1] << '\n';
+                    //  cout << distance[0][k + 1] << '\n';
                     vector<double>::const_iterator i = find(min_distance.begin(), min_distance.end(), distance[0][k + 1]);
                     if (i == min_distance.end())
                     {
@@ -722,15 +724,15 @@ void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &tr
                 }
             }
             sort(min_distance.begin(), min_distance.end());
-            NumberOfNodes_truck=NumberNode;
-            NumberNode=0;
+            NumberOfNodes_truck = NumberNode;
+            NumberNode = 0;
             for (uint64_t k2 = 0; k2 < NumberOfNodes_truck; k2++)
             {
                 for (uint64_t k = 0; k < node_count; k++)
                 {
                     if (particle_list[i].solution[j][k] > 0)
                     {
-                     //   cout << particle_list2[i].solution[j][k] << '\t';
+                        //   cout << particle_list2[i].solution[j][k] << '\t';
                         if (min_distance[k2] == distance[0][k + 1])
                         {
                             if (((truck_capacity - filled_capacity) > 0) && ((truck_capacity - filled_capacity) < stock[k]) && (partial[k] == "Yes"))
@@ -742,7 +744,7 @@ void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &tr
                                 particle_list2[i].solution[j][k] = NumberNode;
                                 particle_list2[i].best_self_position[j][k] = NumberNode;
                                 allocated_node_truck.insert(NumberNode);
-                             //   cout << particle_list2[i].solution[j][k] << '\t';
+                                //   cout << particle_list2[i].solution[j][k] << '\t';
                             }
                             else if (((truck_capacity - filled_capacity) > 0) && ((truck_capacity - filled_capacity) < stock[k]) && (partial[k] == "No"))
                             {
@@ -763,7 +765,7 @@ void PSO::particle_initialization(const uint64_t &node_count, const uint64_t &tr
                                 particle_list2[i].fulfillment_percentage[k] = 1;
                                 particle_list2[i].best_fulfillment_percentage[k] = 1;
                                 allocated_node_truck.insert(NumberNode);
-                              //  cout << particle_list2[i].solution[j][k] << '\t';
+                                //  cout << particle_list2[i].solution[j][k] << '\t';
                             }
                         }
                     }
@@ -1053,7 +1055,7 @@ void PSO::Particle_movement(uint16_t Algorithm_number, vector<vector<uint64_t>> 
     double velocity_range;         // Just for checking that is in the range or not
     static double w1 = 1;          // The weight of old velocity of algorithm1
     static double w2 = 1;          // The weight of old velocity of algorithm2
-    double wdamp = 0.99;           // The coefficient of changing velocity for each iteration
+    double w_change = 0.99;        // The coefficient of changing velocity for each iteration
     double c1 = 2;                 // Personal learning coefficient
     double c2 = 2;                 // Global learning coefficient
     double r1, r2;                 // A random parameter that is [0, 1]
@@ -1092,7 +1094,7 @@ void PSO::Particle_movement(uint16_t Algorithm_number, vector<vector<uint64_t>> 
                 }
             }
         }
-        w1 = wdamp * w1;
+        w1 = w_change * w1;
 
         // Calculating new particle positions based on new velocity
         for (uint64_t i = 1; i < population; i++)
@@ -1182,7 +1184,7 @@ void PSO::Particle_movement(uint16_t Algorithm_number, vector<vector<uint64_t>> 
                 }
             }
         }
-        w2 = wdamp * w2;
+        w2 = w_change * w2;
 
         // Calculating new particle positions based on new velocity
         uint64_t NumberOfNodes_truck;       // Number of nodes in each truck, update in each iteration
@@ -1499,7 +1501,7 @@ int main()
     try
     {
         cout << "-------------------------------------------------------" << '\n';
-        cout << " Reading File....    elapsed_time: ";
+        cout << " Reading File....             elapsed_time: ";
         duration.start();
         input input_reading; // An object of class reading dataset
         input_reading.read_dataset(model, node_x, node_y, stock, partial, node_count, truck_count, truck_capacity, rate, max_iteration);
@@ -1512,9 +1514,7 @@ int main()
     }
 
     // Calculating the population for starting it is a multiple of number of nodes
-
-    //population = (node_count * node_count);
-    population = 2;
+    population = (node_count * node_count);
     if (population < 2)
     {
         cout << "Error: number of population is not" << '\n';
