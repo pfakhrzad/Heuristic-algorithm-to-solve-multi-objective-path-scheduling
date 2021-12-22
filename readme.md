@@ -121,7 +121,7 @@ $$velocity_{t+1} = w  (velocity_t)+c_1r_2(self\_memory-current)+c_2r_2(global\_m
 By function `NonDominate` that is a trade-off between objectives, the rank of each particle is calculated. This count number of particles in each population that have better position comparing to each particle. The particles with the less dominated count will be in better position.
 
 
-## Best Global solution
+## Best global solution
 In every iteration, the best particle based on the rank will be stored in this object also it will compare with the last best-global to make sure that the algorithm works well. This is the best memory of the population and all particles in the next movement will move to be near to this point.
 
 
