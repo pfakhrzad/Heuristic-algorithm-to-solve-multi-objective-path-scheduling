@@ -150,7 +150,7 @@ At the end of algorithm we will see these outputs:
 We test this program with 25 nodes in a graph and 6 available trucks. This is the result after 50 iteration:
 ``` c++
 -------------------------------------------------------
- Reading File....    elapsed_time: 0.0009265
+ Reading File....               elapsed_time: 0.0009265
 -------------------------------------------------------
 node count     : 25
 truck count    : 6
